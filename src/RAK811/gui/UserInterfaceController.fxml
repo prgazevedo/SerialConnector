@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="RAK811.gui.UserInterfaceController">
+
+<children>
+    <GridPane prefHeight="378.0" prefWidth="600.0">
+        <columnConstraints>
+            <ColumnConstraints hgrow="SOMETIMES" maxWidth="281.0" minWidth="10.0" prefWidth="174.0" />
+            <ColumnConstraints hgrow="SOMETIMES" maxWidth="269.0" minWidth="10.0" prefWidth="169.0" />
+            <ColumnConstraints />
+        </columnConstraints>
+        <rowConstraints>
+            <RowConstraints maxHeight="181.0" minHeight="10.0" prefHeight="62.0" vgrow="SOMETIMES" />
+            <RowConstraints maxHeight="283.0" minHeight="10.0" prefHeight="63.0" vgrow="SOMETIMES" />
+            <RowConstraints maxHeight="283.0" minHeight="10.0" prefHeight="63.0" vgrow="SOMETIMES" />
+            <RowConstraints maxHeight="283.0" minHeight="10.0" prefHeight="204.0" vgrow="SOMETIMES" />
+            <RowConstraints maxHeight="99.0" minHeight="10.0" prefHeight="76.0" vgrow="SOMETIMES" />
+        </rowConstraints>
+        <children>
+            <ComboBox fx:id="serialPortCB" prefHeight="27.0" prefWidth="182.0" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+            <Label text="Select serial port device:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+            <ComboBox fx:id="commandCB" prefHeight="27.0" prefWidth="182.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            <Label fx:id="argumentsString" text="Select command arguments" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+            <TextField fx:id="userCommandsString" text="Add commands" GridPane.columnSpan="2" GridPane.rowIndex="2" />
+            <HBox GridPane.columnSpan="3" GridPane.rowIndex="4">
+               <children>
+                  <Button fx:id="exitB" maxWidth="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefWidth="170.0" text="Exit">
+                     <HBox.margin>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                     </HBox.margin></Button>
+                   <Button fx:id="sendSetCommandBtn" maxWidth="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefHeight="23.0" prefWidth="177.0" text="Send SET command">
+                     <HBox.margin>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                     </HBox.margin></Button>
+               </children>
+               <GridPane.margin>
+                  <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+               </GridPane.margin>
+               <padding>
+                  <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+               </padding>
+            </HBox>
+            <ScrollPane prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="3">
+               <content>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="200.0" prefWidth="242.0" />
+               </content>
+            </ScrollPane>
+            <ScrollPane layoutX="10.0" layoutY="144.0" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
+               <content>
+                  <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="200.0" prefWidth="237.0" />
+               </content>
+            </ScrollPane>
+
+        </children>
+         <padding>
+            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+         </padding>
+
+    </GridPane>
+</children>
+
+
+</AnchorPane>
