@@ -218,7 +218,7 @@ public class MainApplication extends Application implements DisplayMessage, Proc
      */
     @Override
     public String getCmd(String cmd) {
-        return m_SyntaxManager.getCmdType(cmd);
+        return m_SyntaxManager.getCmdType(cmd)+ " <Parameters>: " + m_SyntaxManager.getCmdParameters(cmd) ;
     }
 
     /**
