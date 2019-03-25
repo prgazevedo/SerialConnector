@@ -2,7 +2,7 @@ package RAK811.gui;
 
 
 import RAK811.comms.CommsManager;
-import RAK811.comms.RAK811Syntax;
+import RAK811.comms.SyntaxManager;
 import RAK811.properties.PropertiesManager;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -16,6 +16,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Set;
 
 
 public class MainApplication extends Application implements DisplayMessage, ProcessAction {
@@ -32,7 +33,7 @@ public class MainApplication extends Application implements DisplayMessage, Proc
     private PropertiesManager m_PropertiesManager;
     private UserInterfaceController m_controller;
     private CommsManager m_CommsManager;
-    private RAK811Syntax m_SyntaxManager;
+    private SyntaxManager m_SyntaxManager;
 
 
     @Override
@@ -40,7 +41,7 @@ public class MainApplication extends Application implements DisplayMessage, Proc
 
         m_PropertiesManager = new PropertiesManager();
         m_CommsManager = new CommsManager(this);
-        m_SyntaxManager = new RAK811Syntax( this);
+        m_SyntaxManager = new SyntaxManager( this);
         m_SyntaxManager.initialize();
         m_CommsManager.initialize();
 
@@ -174,7 +175,7 @@ public class MainApplication extends Application implements DisplayMessage, Proc
     }
 
     @Override
-    public ArrayList<String> getCommandList() {
+    public Set<String> getCommandList() {
         return m_SyntaxManager.getListCommands();
 
     }
@@ -210,6 +211,14 @@ public class MainApplication extends Application implements DisplayMessage, Proc
             writeLog(Level.INFO, "Error Setting the Serial Port");
         }
 
+    }
+
+    /**
+     * For ProcessAction interface.
+     */
+    @Override
+    public String getCmd(String cmd) {
+        return m_SyntaxManager.getCmdType(cmd);
     }
 
     /**

@@ -33,14 +33,14 @@
             <Label text="Select serial port device:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
             <ComboBox fx:id="commandCB" prefHeight="27.0" prefWidth="182.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
             <Label fx:id="argumentsString" text="Select command arguments" GridPane.columnIndex="0" GridPane.rowIndex="1" />
-            <TextField fx:id="userCommandsString" text="Add commands" GridPane.columnSpan="2" GridPane.rowIndex="2" />
+            <TextField fx:id="userCommandsString" text="NONE"  promptText="Add commands:" GridPane.columnSpan="2" GridPane.rowIndex="2" />
             <HBox GridPane.columnSpan="3" GridPane.rowIndex="4">
                <children>
                   <Button fx:id="exitB" maxWidth="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefWidth="170.0" text="Exit">
                      <HBox.margin>
                         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                      </HBox.margin></Button>
-                   <Button fx:id="sendSetCommandBtn" maxWidth="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefHeight="23.0" prefWidth="177.0" text="Send SET command">
+                   <Button fx:id="sendBtn" maxWidth="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefHeight="23.0" prefWidth="177.0" text="Send SET command">
                      <HBox.margin>
                         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                      </HBox.margin></Button>

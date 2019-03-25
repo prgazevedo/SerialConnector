@@ -2,15 +2,22 @@ package RAK811.comms;
 
 import RAK811.gui.MainApplication;
 
+import java.lang.annotation.*;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Set;
 
-public class RAK811Syntax {
 
+public class SyntaxManager {
 
-    public  enum eCmdType2 {
-        join;
+    //In order to fill in hashMap of cmds
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target({ElementType.METHOD})
+    public @interface cmdEnum {
+        public String name();
+        public eCmdType value();
     }
+
 
 
     public final String at = "at+";
@@ -69,21 +76,36 @@ public class RAK811Syntax {
     static final int ABP = 1;
 
 
+    //method name --> cmdType
+    private HashMap<String,eCmdType> cmdMethodMap;
+    //method signature --> method name
+    private HashMap<String,String> listCommands;
+    public Set<String> getListCommands() { return listCommands.keySet(); }
+
+    public String getCmdType(String cmd){
+        return cmdMethodMap.get(listCommands.get(cmd)).toString();
+    }
 
 
-    private ArrayList<String> listCommands;
-    public ArrayList<String> getListCommands() { return listCommands; }
     private MainApplication m_mainApplication;
-    public RAK811Syntax(  MainApplication mainApplication) {
-
+    public SyntaxManager(MainApplication mainApplication) {
+        cmdMethodMap = new HashMap<String,eCmdType>();
        m_mainApplication=mainApplication;
 
     }
     public void initialize() {
         Method[] methods = this.getClass().getMethods();
-        listCommands = new ArrayList<>();
+        cmdMethodMap = new HashMap<>();
+        listCommands = new HashMap<>();
         for(Method method: methods){
-            listCommands.add(ReflectUtil.getSignature(method));
+            String signature= ReflectUtil.getSignature(method);
+            if(signature.startsWith("RAK_")) {
+                Annotation annotation = method.getAnnotation(cmdEnum.class);
+                cmdMethodMap.put( ((cmdEnum) annotation).name(), ((cmdEnum) annotation).value());
+                listCommands.put(signature,((cmdEnum) annotation).name());
+            }
+
+
         }
         System.out.println("List of commands initialized");
     }
@@ -93,8 +115,9 @@ public class RAK811Syntax {
      * Gets the firmware version number of the module.
      * Only applies to the firmware that the module programmed for the RAK811 AT command.
      */
-    public final String getVersion() {
-        String ret = at+eCmdType.version;
+    @cmdEnum(name="RAK_getVersion",  value = eCmdType.version)
+    public final String RAK_getVersion() {
+        String ret = at+eCmdType.version.name();
         return ret;
     }
 
@@ -102,7 +125,8 @@ public class RAK811Syntax {
      * Get the frequency band of the module.
      * This feature is only supported after firmware version 1.0.2.6.
      */
-    public final String getBand() {
+    @cmdEnum(name="RAK_getBand",  value = eCmdType.band)
+    public final String RAK_getBand() {
         String ret = at+eCmdType.band;
         return ret;
     }
@@ -112,7 +136,8 @@ public class RAK811Syntax {
      * When the module is in sleep mode, the host can send any character to wake it up.
      * When the module is awakened, the event response will automatically return through the serial information.
      */
-    public final String  sleep() {
+    @cmdEnum(name="RAK_sleep",  value = eCmdType.sleep)
+    public final String  RAK_sleep() {
         String ret = at+eCmdType.sleep;
         return ret;
 
@@ -123,7 +148,8 @@ public class RAK811Syntax {
      * mode  = 0: Reset and restart module.
      * mode  = 1: Reset LoRaWAN or LoraP2P stack and Module will reload LoRa configuration from EEPROM.
      */
-    public final String reset(int mode) {
+    @cmdEnum(name="RAK_reset",  value = eCmdType.reset)
+    public final String RAK_reset(int mode) {
         String ret="";
         if (mode == 1 || mode==0) {
             ret = at+eCmdType.reset+"="+mode;
@@ -137,7 +163,8 @@ public class RAK811Syntax {
      * Reload the default parameters of LoraWAN or LoraP2P setting.
      * This command is used to restore the module's initial state.
      */
-    public final String reload() {
+    @cmdEnum(name="RAK_reload",  value = eCmdType.reload)
+    public final String RAK_reload() {
         String ret = at+eCmdType.reload;
         return ret;
 
@@ -149,7 +176,8 @@ public class RAK811Syntax {
      * rate : If your Band is EU868 from 0 to 7.
      *        If your Band is US915 from 0 to 4.
      */
-    public final String setRate(int rate) {
+    @cmdEnum(name="RAK_setRate",  value = eCmdType.dr)
+    public final String RAK_setRate(int rate) {
         String ret = at+eCmdType.dr+"="+rate;
         return ret;
     }
@@ -159,7 +187,8 @@ public class RAK811Syntax {
      * mode  = 0: Set the module to LoRaWAN mode.
      * mode  = 1: Set the module to LoRaP2P mode.
      */
-    public final String setWorkingMode(int mode) {
+    @cmdEnum(name="RAK_setWorkingMode",  value = eCmdType.mode)
+    public final String RAK_setWorkingMode(int mode) {
         String ret="";
         switch (mode) {
             case 0:
@@ -179,7 +208,8 @@ public class RAK811Syntax {
      * appEUI : Application EUI as a HEX string. Example "70B3D57EF00047C0"
      * appKEY : Application key as a HEX string. Example "5D833B4696D5E01E2F8DC880E30BA5FE"
      */
-    public final String initOTAA(String devEUI, String appEUI, String appKEY) {
+    @cmdEnum(name="RAK_getBand",  value = eCmdType.band)
+    public final String RAK_initOTAA(String devEUI, String appEUI, String appKEY) {
         String sdevEUI ="";
         String sAppEUI = "";
         String sAppsKEY = "";
@@ -209,7 +239,8 @@ public class RAK811Syntax {
      * nwksKEY : Network Session Key as a HEX string. Example "3432567afde4525e7890cfea234a5821"
      * appsKEY : Application Session Key as a HEX string. Example "a48adfc393a0de458319236537a11d90"
      */
-    public final String initABP(String devADDR, String nwksKEY, String appsKEY) {
+    @cmdEnum(name="RAK_getBand",  value = eCmdType.band)
+    public final String RAK_initABP(String devADDR, String nwksKEY, String appsKEY) {
         String command = "";
         String sDevADDR ="";
         String sNwksKEY = "";
@@ -240,7 +271,8 @@ public class RAK811Syntax {
      * mode  = 1: join a network using personalization.
      * Before using this command, you must call one of the initOTAA and initABP functions
      */
-    public String joinLoRaNetwork(int mode) {
+    @cmdEnum(name="RAK_getBand",  value = eCmdType.band)
+    public String RAK_joinLoRaNetwork(int mode) {
         String ret="";
         switch (mode) {
             case 0:
@@ -257,61 +289,68 @@ public class RAK811Syntax {
     }
 
 
-
-    public String sendData(int type, int port, byte[] buffer) {
+    @cmdEnum(name="RAK_getBand",  value = eCmdType.band)
+    public String RAK_sendData(int type, int port, byte[] buffer) {
 
         String ret = at+eCmdType.send+"="+ type + "," + port + "," + buffer;
         return ret;
     }
 
-
-    public String setConfig(String Key, String Value) {
+    @cmdEnum(name="RAK_getBand",  value = eCmdType.band)
+    public String RAK_setConfig(String Key, String Value) {
 
         String ret = at+eCmdType.set_config+"="+ Key + ":" + Value;
         return ret;
 
     }
-
-    public String getConfig(String Key)
+    @cmdEnum(name="RAK_getBand",  value = eCmdType.band)
+    public String RAK_getConfig(String Key)
     {
         String ret = at+eCmdType.get_config+"=" + Key;
 
         return ret;
     }
-    public String getP2PConfig()
+    @cmdEnum(name="RAK_getBand",  value = eCmdType.band)
+    public String RAK_getP2PConfig()
     {
         String ret = at+eCmdType.rf_config;
         ret.trim();
         return ret;
     }
-    public String initP2P(String FREQ, int SF, int BW, int CR, int PRlen, int PWR)
+    @cmdEnum(name="RAK_getBand",  value = eCmdType.band)
+    public String RAK_initP2P(String FREQ, int SF, int BW, int CR, int PRlen, int PWR)
     {
 
         String ret = at+eCmdType.rf_config+"="+ FREQ + "," + SF + "," + BW + "," + CR + "," + PRlen + "," + PWR;
         return ret;
     }
-    public String recvP2PData(int report_en)
+    @cmdEnum(name="RAK_getBand",  value = eCmdType.band)
+    public String RAK_recvP2PData(int report_en)
     {
         String ret=at+eCmdType.rxc+"="+report_en;
         return ret;
     }
-    public String sendP2PData(int CNTS, String interver, byte[] DATAHex)
+    @cmdEnum(name="RAK_getBand",  value = eCmdType.band)
+    public String RAK_sendP2PData(int CNTS, String interver, byte[] DATAHex)
     {
         String ret = at+eCmdType.txc+"="+ CNTS + "," + interver + "," + DATAHex;
         return ret;
     }
-    public String stopSendP2PData()
+    @cmdEnum(name="RAK_getBand",  value = eCmdType.band)
+    public String RAK_stopSendP2PData()
     {
         String ret = at+eCmdType.tx_stop;
         return ret;
 
     }
-    public String stopRecvP2PData()
+    @cmdEnum(name="RAK_getBand",  value = eCmdType.band)
+    public String RAK_stopRecvP2PData()
     {
         String ret = at+eCmdType.rx_stop;
         return ret;
     }
-    public String checkStatusStatistics(int mode)
+    @cmdEnum(name="RAK_getBand",  value = eCmdType.band)
+    public String RAK_checkStatusStatistics(int mode)
     {
         String ret="";
         switch (mode) {
@@ -327,8 +366,8 @@ public class RAK811Syntax {
 
     }
 
-
-    public String setUARTConfig(int Baud, int Data_bits, int Parity, int Stop_bits, int Flow_ctrl)
+    @cmdEnum(name="RAK_getBand",  value = eCmdType.band)
+    public String RAK_setUARTConfig(int Baud, int Data_bits, int Parity, int Stop_bits, int Flow_ctrl)
     {
         String ret = at+eCmdType.uart+"=" + Baud + "," + Data_bits + "," + Parity + "," + Stop_bits + "," + Flow_ctrl;
         return ret;

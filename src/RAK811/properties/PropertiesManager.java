@@ -15,7 +15,7 @@ public class PropertiesManager  {
     /** Application size */
     public static final int WIDTH = 600;
     /** Application size */
-    public static final int HEIGHT = 800;
+    public static final int HEIGHT = 400;
     public static final String FXML_NAME = "UserInterfaceController.fxml";
     public static final String CSS_NAME = "application.css";
 

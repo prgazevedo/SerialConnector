@@ -1,6 +1,7 @@
 package RAK811.gui;
 
 import java.util.ArrayList;
+import java.util.Set;
 
 public interface ProcessAction {
 
@@ -9,11 +10,11 @@ public interface ProcessAction {
      */
         public ArrayList<String> getSerialPortList();
 
-        public ArrayList<String> getCommandList();
+        public Set<String> getCommandList();
 
         public void setSerialPortValue(String serialPortName);
 
         public void sendMsg();
 
-
+        public String getCmd(String cmdName);
 }

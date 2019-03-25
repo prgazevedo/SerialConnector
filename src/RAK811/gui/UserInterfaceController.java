@@ -29,8 +29,8 @@ public class UserInterfaceController implements javafx.fxml.Initializable, javaf
     @FXML private ComboBox<String> serialPortCB;
     @FXML private ComboBox<String> commandCB;
     @FXML private Button exitB;
-    @FXML private Button sendSetCommandBtn;
-    @FXML private TextField UserCommands;
+    @FXML private Button sendBtn;
+    @FXML private TextField userCommandsString;
     @FXML private ListView<String> recFramesLV;
     @FXML private ListView<String> logMsgsLV;
 
@@ -43,9 +43,10 @@ public class UserInterfaceController implements javafx.fxml.Initializable, javaf
 
     private ObservableList<String> cmdList = FXCollections.observableArrayList();
     private void setOnActioncommandCB(ActionEvent event){
-        String cmdName = commandCB.getSelectionModel().getSelectedItem();
-        //@TODO m_processAction.setCmd(cmdName);
-        System.out.println("ComboBoxAction selected: "+cmdName);
+        String methodName = commandCB.getSelectionModel().getSelectedItem();
+        String cmdName = m_processAction.getCmd(methodName);
+        userCommandsString.setText(cmdName+" ");
+        System.out.println("ComboBoxAction selected: "+methodName+ "this will send command: "+cmdName);
     }
     private void setOnActionexitB(ActionEvent event){
         // get a handle to the stage
@@ -54,6 +55,11 @@ public class UserInterfaceController implements javafx.fxml.Initializable, javaf
         System.out.println("exit Button pressed");
         Platform.exit();
     }
+    private void setOnActionsendSetCommandBtn(ActionEvent event){
+        userCommandsString.clear();
+        System.out.println("sendBtn Button pressed with command:"+userCommandsString.getPromptText());
+    }
+
 
 
 
@@ -72,18 +78,20 @@ public class UserInterfaceController implements javafx.fxml.Initializable, javaf
      */
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-
-
+        System.out.println("initialize called");
         //setup comboBox
         serialPortList.add("none");
         serialPortCB.setItems(serialPortList);
+        serialPortCB.setOnAction(this::setOnActionserialPortCB);
         cmdList.add("none");
         commandCB.setItems(cmdList);
-        serialPortCB.setOnAction(this::setOnActionserialPortCB);
-        timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
-        System.out.println("initialize called");
-        // action for button
+        commandCB.setOnAction(this::setOnActioncommandCB);
+        // action for SendCommand button
+        sendBtn.setOnAction(this::setOnActionsendSetCommandBtn);
+        // action for exit button
         exitB.setOnAction(this::setOnActionexitB);
+        timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
+        // action for sendCommand button
 
             /*
             // To display latest received frames.
@@ -96,12 +104,7 @@ public class UserInterfaceController implements javafx.fxml.Initializable, javaf
             logMsgsLV.setItems(displayedLogMsgs);
             logMsgs = new ListViewMessages(displayedLogMsgs, MAX_NB_LOGMSGS);
 
-
-
             */
-
-
-
 
 
     }
@@ -120,7 +123,7 @@ public class UserInterfaceController implements javafx.fxml.Initializable, javaf
      */
     public void enableActions(boolean enable) {
 
-        sendSetCommandBtn.setDisable(!enable);
+        sendBtn.setDisable(!enable);
 
     }
 
