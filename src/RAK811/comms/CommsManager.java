@@ -54,7 +54,7 @@ public class CommsManager  {
     /** The logger we shall use */
     private final static Logger logger =  LogManager.getLogger(CommsManager.class);
 
-    public void writeLog(org.apache.logging.log4j.Level messageLevel,String message){ logger.log(messageLevel,"[Raspberry]:"+message); }
+    public void writeLog(org.apache.logging.log4j.Level messageLevel,String message){ logger.log(messageLevel,message); }
 
 
     public void logInitialize(){

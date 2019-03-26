@@ -11,6 +11,7 @@ public class PropertiesManager  {
 
     /** Application name */
     public static final String APPLICATION_NAME = "RAK811";
+    public final static String SEPARATOR = " - ";
     public static final String VERSION = "0.1";
     /** Application size */
     public static final int WIDTH = 600;

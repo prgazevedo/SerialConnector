@@ -1,5 +1,7 @@
 package RAK811.gui;
 
+import RAK811.comms.CommsManager;
+import RAK811.properties.PropertiesManager;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -9,13 +11,14 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.ResourceBundle;
-
-import static javafx.scene.input.KeyCode.SEPARATOR;
 
 public class UserInterfaceController implements javafx.fxml.Initializable, javafx.event.EventHandler<ActionEvent> {
 
@@ -38,31 +41,40 @@ public class UserInterfaceController implements javafx.fxml.Initializable, javaf
     private void setOnActionserialPortCB(ActionEvent event){
         String serialName = serialPortCB.getSelectionModel().getSelectedItem();
         m_processAction.setSerialPortValue(serialName);
-        System.out.println("ComboBoxAction selected: "+serialName);
+        writeLog(Level.INFO, "ComboBoxAction selected: "+serialName);
     }
 
     private ObservableList<String> cmdList = FXCollections.observableArrayList();
     private void setOnActioncommandCB(ActionEvent event){
         String methodName = commandCB.getSelectionModel().getSelectedItem();
         String cmdName = m_processAction.getCmd(methodName);
-        userCommandsString.setText(cmdName+" ");
-        System.out.println("ComboBoxAction selected: "+methodName+ "this will send command: "+cmdName);
+        String cmdParameters = m_processAction.getCmdParameters(methodName);
+        userCommandsString.setText(cmdParameters);
+        writeLog(Level.INFO, "ComboBoxAction selected: "+cmdName+ " with parameters: "+cmdParameters);
     }
-    private void setOnActionexitB(ActionEvent event){
-        // get a handle to the stage
-        // Stage stage = (Stage) exitB.getScene().getWindow();
-        //stage.close();
-        System.out.println("exit Button pressed");
+    private void setOnActionexitBtn(ActionEvent event){
+        writeLog(Level.INFO, "exit Button pressed");
         Platform.exit();
     }
-    private void setOnActionsendSetCommandBtn(ActionEvent event){
+    private void setOnActionsendCommandBtn(ActionEvent event){
+        writeLog(Level.INFO, "SendCmd Button pressed");
+        String methodName = commandCB.getSelectionModel().getSelectedItem();
+        String parameters = userCommandsString.getText();
+        if(parameters.equals("")) {
+            m_processAction.sendMsg(methodName, null);
+
+        }
+        else {
+            m_processAction.sendMsg(methodName, parseString(parameters));
+        }
         userCommandsString.clear();
-        System.out.println("sendBtn Button pressed with command:"+userCommandsString.getPromptText());
     }
 
-
-
-
+    private String[] parseString(String stext){
+        String delims = "[+\\<\\>\\-*/\\^ ]+"; // so the delimiters are:  + - * / ^ space
+        String[] tokens = stext.split(delims);
+        return tokens;
+    }
 
     private ObservableList<String> displayedFrames = FXCollections.observableArrayList();
     private ListViewMessages recFrames;
@@ -70,15 +82,22 @@ public class UserInterfaceController implements javafx.fxml.Initializable, javaf
     private ObservableList<String> displayedLogMsgs= FXCollections.observableArrayList();
     private ListViewMessages logMsgs;
 
+    private ObservableList<String> LogMsgTEST= FXCollections.observableArrayList();
 
     private SimpleDateFormat timeFormat;
+
+    /** The logger we shall use */
+    private final static Logger logger =  LogManager.getLogger(CommsManager.class);
+
+    public void writeLog(org.apache.logging.log4j.Level messageLevel,String message){ logger.log(messageLevel,"[Log]:"+message); }
+
 
     /**
      * Called by FXML loader.
      */
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        System.out.println("initialize called");
+        writeLog(Level.INFO, "initialize called");
         //setup comboBox
         serialPortList.add("none");
         serialPortCB.setItems(serialPortList);
@@ -87,24 +106,21 @@ public class UserInterfaceController implements javafx.fxml.Initializable, javaf
         commandCB.setItems(cmdList);
         commandCB.setOnAction(this::setOnActioncommandCB);
         // action for SendCommand button
-        sendBtn.setOnAction(this::setOnActionsendSetCommandBtn);
+        sendBtn.setOnAction(this::setOnActionsendCommandBtn);
         // action for exit button
-        exitB.setOnAction(this::setOnActionexitB);
+        exitB.setOnAction(this::setOnActionexitBtn);
         timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
-        // action for sendCommand button
 
-            /*
-            // To display latest received frames.
-            recFramesLV = new ListView<>(displayedFrames);
-            recFramesLV.setItems(displayedFrames);
-            recFrames = new ListViewMessages(displayedFrames, MAX_NB_FRAMES);
+        displayedFrames.add("Displayed Frames");
+        // To display latest received frames.
+        recFramesLV.setItems(displayedFrames);
+        recFrames = new ListViewMessages(displayedFrames, 1000);
 
-            // To display latest log messages.
-            logMsgsLV = new ListView<>(displayedLogMsgs);
-            logMsgsLV.setItems(displayedLogMsgs);
-            logMsgs = new ListViewMessages(displayedLogMsgs, MAX_NB_LOGMSGS);
+        // To display latest log messages.
+        logMsgsLV.setItems(displayedLogMsgs);
+        logMsgs = new ListViewMessages(displayedLogMsgs, 1000);
 
-            */
+
 
 
     }
@@ -118,14 +134,7 @@ public class UserInterfaceController implements javafx.fxml.Initializable, javaf
         cmdList.setAll(m_processAction.getCommandList());
         commandCB.setItems(cmdList);
     }
-    /**
-     * To call once serial port is setup successfully.
-     */
-    public void enableActions(boolean enable) {
 
-        sendBtn.setDisable(!enable);
-
-    }
 
     /**
      * For EventHandler<ActionEvent> interface.
@@ -154,7 +163,7 @@ public class UserInterfaceController implements javafx.fxml.Initializable, javaf
 
         Date currentTime = new Date();
         String s = timeFormat.format(currentTime);
-        recFrames.addMessage(s + SEPARATOR + frame);
+        recFrames.addMessage(s + PropertiesManager.SEPARATOR + frame);
 
     }
 
@@ -162,7 +171,7 @@ public class UserInterfaceController implements javafx.fxml.Initializable, javaf
 
         Date currentTime = new Date();
         String s = timeFormat.format(currentTime);
-        //logMsgs.addMessage(s + SEPARATOR + logMsg);
+        logMsgs.addMessage(s + PropertiesManager.SEPARATOR + logMsg);
 
     }
 

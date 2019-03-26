@@ -1,10 +1,18 @@
 package RAK811.comms;
 
 import RAK811.gui.MainApplication;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.Level;
 
 import java.lang.annotation.*;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Set;
 
 
@@ -75,24 +83,71 @@ public class SyntaxManager {
     static final int OTAA = 0;
     static final int ABP = 1;
 
-
-    //method name --> cmdType
+    //method signature --> method
+    private HashMap<String, Method> callbackMethodMap;
+    //method name --> parameters
+    private HashMap<String, LinkedHashMap<String, Parameter>> callbackParameterMap;
+    //uses annotations
+    //method name (annotation) --> cmdType(annotation) *
     private HashMap<String,eCmdType> cmdMethodMap;
-    //method signature --> method name
+    //Used for list of commands *
+    //method signature --> method name (annotation)
     private HashMap<String,String> listCommands;
-    //method signature --> parameters
+    //method signature --> parameter string *
     private HashMap<String,String> listParameters;
+
+    //for combo box
     public Set<String> getListCommands() { return listCommands.keySet(); }
 
+    //for text label
     public String getCmdType(String cmd){
         return cmdMethodMap.get(listCommands.get(cmd)).toString();
     }
+    //For text field
     public String getCmdParameters(String cmd){
         return listParameters.get(cmd);
     }
 
+
+    public ArrayList<Object> buildRAKParameterValues( String... parameterValues){
+        ArrayList<Object> List = new ArrayList<>();
+        for(String s: parameterValues){
+            List.add(s);
+        }
+        return List;
+    }
+
+    public String callRAKCmd(String signature, Object... parameterValues){
+        Method method =  callbackMethodMap.get(signature);
+         String message = "";
+        try {
+           if (parameterValues!=null) {
+               message = (String) method.invoke(this, parameterValues);
+               writeLog(Level.INFO, "callRAKCmd called for:"+method.getName()+" Parameters: "+ parameterValues.toString());
+           }
+           else {
+               message = (String) method.invoke(this);
+               writeLog(Level.INFO, "callRAKCmd called for:"+method.getName()+" No Parameters ");
+
+           }
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        return message;
+    }
+
+    /** The logger we shall use */
+    private final static Logger logger =  LogManager.getLogger(CommsManager.class);
+
+    public void writeLog(org.apache.logging.log4j.Level messageLevel,String message){ logger.log(messageLevel,"[Log]:"+message); }
+
+
     private MainApplication m_mainApplication;
     public SyntaxManager(MainApplication mainApplication) {
+        callbackMethodMap = new HashMap<>();
+        callbackParameterMap = new HashMap<>();
         cmdMethodMap = new HashMap<>();
         listCommands = new HashMap<>();
         listParameters = new HashMap<>();
@@ -103,17 +158,23 @@ public class SyntaxManager {
         Method[] methods = this.getClass().getMethods();
         for(Method method: methods){
             String signature= ReflectUtil.getSignature(method);
-            String parameters= ReflectUtil.parametersAsString(method);
+            String parametersString= ReflectUtil.getParametersNamesAsString(method);
             if(signature.startsWith("RAK_")) {
+                callbackMethodMap.put(signature,method);
+                LinkedHashMap<String,Parameter> listOfPairs = new LinkedHashMap<>();
+                for(Parameter p:method.getParameters()){
+                   listOfPairs.put(p.getName(),p);
+                }
+                callbackParameterMap.put(method.getName(),listOfPairs);
                 Annotation annotation = method.getAnnotation(cmdEnum.class);
                 cmdMethodMap.put( ((cmdEnum) annotation).name(), ((cmdEnum) annotation).value());
                 listCommands.put(signature,((cmdEnum) annotation).name());
-                listParameters.put(signature,parameters);
+                listParameters.put(signature,parametersString);
             }
 
 
         }
-        System.out.println("List of commands initialized");
+         writeLog(Level.INFO, "List of commands initialized");
     }
 
 
@@ -121,7 +182,8 @@ public class SyntaxManager {
      * Gets the firmware version number of the module.
      * Only applies to the firmware that the module programmed for the RAK811 AT command.
      */
-    @cmdEnum(name="RAK_getVersion",  value = eCmdType.version)
+    @cmdEnum(name="RAK_getVersion",
+            value = eCmdType.version)
     public final String RAK_getVersion() {
         String ret = at+eCmdType.version.name();
         return ret;
@@ -155,12 +217,12 @@ public class SyntaxManager {
      * mode  = 1: Reset LoRaWAN or LoraP2P stack and Module will reload LoRa configuration from EEPROM.
      */
     @cmdEnum(name="RAK_reset",  value = eCmdType.reset)
-    public final String RAK_reset(int mode) {
+    public final String RAK_reset(String mode) {
         String ret="";
-        if (mode == 1 || mode==0) {
+        if (mode.equals("1") || mode.equals("0")) {
             ret = at+eCmdType.reset+"="+mode;
         } else {
-            System.out.println("The mode set Error,the mode is '0'or '1'.");
+             writeLog(Level.INFO, "The mode set Error,the mode is '0'or '1'.");
         }
         return ret;
     }
@@ -183,7 +245,7 @@ public class SyntaxManager {
      *        If your Band is US915 from 0 to 4.
      */
     @cmdEnum(name="RAK_setRate",  value = eCmdType.dr)
-    public final String RAK_setRate(int rate) {
+    public final String RAK_setRate(String rate) {
         String ret = at+eCmdType.dr+"="+rate;
         return ret;
     }
@@ -194,15 +256,15 @@ public class SyntaxManager {
      * mode  = 1: Set the module to LoRaP2P mode.
      */
     @cmdEnum(name="RAK_setWorkingMode",  value = eCmdType.mode)
-    public final String RAK_setWorkingMode(int mode) {
+    public final String RAK_setWorkingMode(String mode) {
         String ret="";
         switch (mode) {
-            case 0:
-            case 1:
+            case "0":
+            case "1":
                 ret = at+eCmdType.mode+"="+mode; //Set LoRaWAN Mode.
                 break;
             default:
-                System.out.println("The Workingmode set Error,the mode is '0'or '1'.");
+                 writeLog(Level.INFO, "The Workingmode set Error,the mode is '0'or '1'.");
                 break;
         }
         return ret;
@@ -222,17 +284,17 @@ public class SyntaxManager {
         if (devEUI.length() == 16) {
             sdevEUI = devEUI;
         } else {
-            System.out.println("The parameter devEUI is set incorrectly!");
+             writeLog(Level.INFO, "The parameter devEUI is set incorrectly!");
         }
         if (appEUI.length() == 16) {
             sAppEUI = appEUI;
         } else {
-            System.out.println("The parameter appEUI is set incorrectly!");
+             writeLog(Level.INFO, "The parameter appEUI is set incorrectly!");
         }
         if (appKEY.length() == 32) {
             sAppsKEY = appKEY;
         } else {
-            System.out.println("The parameter appKEY is set incorrectly!");
+             writeLog(Level.INFO, "The parameter appKEY is set incorrectly!");
         }
         String ret = at+eCmdType.set_config+"=dev_eui:" + sdevEUI + "&app_eui:" + sAppEUI + "&app_key:" + sAppsKEY;
         System.out.println(ret);
@@ -254,17 +316,17 @@ public class SyntaxManager {
         if (devADDR.length() == 8) {
             sDevADDR = devADDR;
         } else {
-            System.out.println("The parameter devADDR is set incorrectly!");
+             writeLog(Level.INFO, "The parameter devADDR is set incorrectly!");
         }
         if (nwksKEY.length() == 32) {
             sNwksKEY = nwksKEY;
         } else {
-            System.out.println("The parameter nwksKEY is set incorrectly!");
+             writeLog(Level.INFO, "The parameter nwksKEY is set incorrectly!");
         }
         if (appsKEY.length() == 32) {
             sAppsKEY = appsKEY;
         } else {
-            System.out.println("The parameter appsKEY is set incorrectly!");
+             writeLog(Level.INFO, "The parameter appsKEY is set incorrectly!");
         }
         command = at+eCmdType.set_config+"=dev_addr:" + sDevADDR + "&nwks_key:" + sNwksKEY + "&apps_key:" + sAppsKEY;
         System.out.println(command);
@@ -278,17 +340,17 @@ public class SyntaxManager {
      * Before using this command, you must call one of the initOTAA and initABP functions
      */
     @cmdEnum(name="RAK_joinLoRaNetwork",  value = eCmdType.join)
-    public String RAK_joinLoRaNetwork(int mode) {
+    public String RAK_joinLoRaNetwork(String mode) {
         String ret="";
         switch (mode) {
-            case 0:
+            case "0":
                 ret = at+eCmdType.join+"=otaa"; //join Network through OTAA mode.
                 break;
-            case 1:
+            case "1":
                 ret = at+eCmdType.join+"=abp"; //join Network through ABP mode.
                 break;
             default:
-                System.out.println("The joinLoRaNetwork set Error,the mode is '0'or '1'.");
+                 writeLog(Level.INFO, "The joinLoRaNetwork set Error,the mode is '0'or '1'.");
                 break;
         }
         return ret;
@@ -296,9 +358,9 @@ public class SyntaxManager {
 
 
     @cmdEnum(name="RAK_sendData",  value = eCmdType.send)
-    public String RAK_sendData(int type, int port, byte[] buffer) {
+    public String RAK_sendData(String type, String port, String buffer) {
 
-        String ret = at+eCmdType.send+"="+ type + "," + port + "," + buffer;
+        String ret = at+eCmdType.send+"="+ type + "," + port + "," + buffer.getBytes(StandardCharsets.UTF_8);
         return ret;
     }
 
@@ -324,22 +386,22 @@ public class SyntaxManager {
         return ret;
     }
     @cmdEnum(name="RAK_initP2P",  value = eCmdType.rf_config)
-    public String RAK_initP2P(String FREQ, int SF, int BW, int CR, int PRlen, int PWR)
+    public String RAK_initP2P(String FREQ, String SF, String BW, String CR, String PRlen, String PWR)
     {
 
         String ret = at+eCmdType.rf_config+"="+ FREQ + "," + SF + "," + BW + "," + CR + "," + PRlen + "," + PWR;
         return ret;
     }
     @cmdEnum(name="RAK_recvP2PData",  value = eCmdType.rxc)
-    public String RAK_recvP2PData(int report_en)
+    public String RAK_recvP2PData(String report_en)
     {
         String ret=at+eCmdType.rxc+"="+report_en;
         return ret;
     }
     @cmdEnum(name="RAK_sendP2PData",  value = eCmdType.txc)
-    public String RAK_sendP2PData(int CNTS, String interver, byte[] DATAHex)
+    public String RAK_sendP2PData(String CNTS, String interver, String DATAHex)
     {
-        String ret = at+eCmdType.txc+"="+ CNTS + "," + interver + "," + DATAHex;
+        String ret = at+eCmdType.txc+"="+ CNTS + "," + interver + "," + DATAHex.getBytes(StandardCharsets.UTF_8);
         return ret;
     }
     @cmdEnum(name="RAK_stopSendP2PData",  value = eCmdType.tx_stop)
@@ -356,16 +418,16 @@ public class SyntaxManager {
         return ret;
     }
     @cmdEnum(name="RAK_checkStatusStatistics",  value = eCmdType.status)
-    public String RAK_checkStatusStatistics(int mode)
+    public String RAK_checkStatusStatistics(String mode)
     {
         String ret="";
         switch (mode) {
-            case 0:
-            case 1:
+            case "0":
+            case "1":
                 ret = at+eCmdType.status+"="+mode;
                 break;
             default:
-                System.out.println("The checkStatusStatistics set/get Error,the mode is '0'or '1'.");
+                 writeLog(Level.INFO, "The checkStatusStatistics set/get Error,the mode is '0'or '1'.");
                 break;
         }
         return ret;
@@ -373,7 +435,7 @@ public class SyntaxManager {
     }
 
     @cmdEnum(name="RAK_setUARTConfig",  value = eCmdType.uart)
-    public String RAK_setUARTConfig(int Baud, int Data_bits, int Parity, int Stop_bits, int Flow_ctrl)
+    public String RAK_setUARTConfig(String Baud, String Data_bits, String Parity, String Stop_bits, String Flow_ctrl)
     {
         String ret = at+eCmdType.uart+"=" + Baud + "," + Data_bits + "," + Parity + "," + Stop_bits + "," + Flow_ctrl;
         return ret;

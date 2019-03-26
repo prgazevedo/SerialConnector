@@ -14,7 +14,9 @@ public interface ProcessAction {
 
         public void setSerialPortValue(String serialPortName);
 
-        public void sendMsg();
+        public void sendMsg(String cmd,  String... params);
 
         public String getCmd(String cmdName);
+
+        public String getCmdParameters(String cmdName);
 }

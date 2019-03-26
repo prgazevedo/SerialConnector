@@ -62,38 +62,13 @@ public class MainApplication extends Application implements DisplayMessage, Proc
         }
 
 
-        // Display version.
-        m_controller.displayLogMsg(m_PropertiesManager.APPLICATION_NAME+"- Version: "+m_PropertiesManager.VERSION);
 
         m_controller.setProcessAction(this);
         m_controller.initializePorts();
         m_controller.initializeCmds();
-/*
-
-        try {
-            fxmlLoader = new FXMLLoader();
-            writeLog(Level.INFO, "Opening Properties Manager FXML file: "+ m_PropertiesManager.FXML_NAME);
-            //Parent root = fxmlLoader.load(getClass().getResource(m_PropertiesManager.FXML_NAME).openStream());
-            Parent root = fxmlLoader.load(getClass().getResource("UserInterfaceController.fxml").openStream());
-            Scene scene = new Scene(root,m_PropertiesManager.WIDTH,m_PropertiesManager.HEIGHT);
-            writeLog(Level.INFO, "Opening Properties Manager CSS file: "+ m_PropertiesManager.CSS_NAME);
-            scene.getStylesheets().add(getClass().getResource(m_PropertiesManager.CSS_NAME).toExternalForm());
-            primaryStage.setScene(scene);
-            primaryStage.show();
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
-
-        try {
-            m_controller = (UserInterfaceController)fxmlLoader.getController();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
         // Display version.
-        //m_controller.displayLogMsg(m_PropertiesManager.APPLICATION_NAME+"- Version: "+m_PropertiesManager.VERSION);
+        m_controller.displayLogMsg(m_PropertiesManager.APPLICATION_NAME+"- Version: "+m_PropertiesManager.VERSION);
 
-        m_controller.setProcessAction(this);
-*/
 
     }
 
@@ -197,7 +172,7 @@ public class MainApplication extends Application implements DisplayMessage, Proc
                     @Override
                     public void run() {
 
-                        m_controller.enableActions(true);
+                        //m_controller.enableActions(true);
 
                     }
 
@@ -218,17 +193,29 @@ public class MainApplication extends Application implements DisplayMessage, Proc
      */
     @Override
     public String getCmd(String cmd) {
-        return m_SyntaxManager.getCmdType(cmd)+ " <Parameters>: " + m_SyntaxManager.getCmdParameters(cmd) ;
+        return m_SyntaxManager.getCmdType(cmd);
     }
-
     /**
      * For ProcessAction interface.
      */
     @Override
-    public void sendMsg() {
-        String message = "test";
-        m_CommsManager.sendMessage( message);
+    public String getCmdParameters(String cmd) {
+        return m_SyntaxManager.getCmdParameters(cmd) ;
+    }
+    /**
+     * For ProcessAction interface.
+     */
+    @Override
+    public void sendMsg(String cmd, String... params) {
+        String message;
+        if(params!=null) {
+           // m_SyntaxManager.buildRAKParameterValues(params).toArray()
+        }
+        message = m_SyntaxManager.callRAKCmd(cmd, params );
+        writeLog(Level.INFO, "sendMsg: Message to the Serial Port"+message);
+        m_CommsManager.sendMessage(message);
         displayLog(message+" message sent");
+        writeLog(Level.INFO, "sendMsg: displayLog called"+message);
 
     }
 
