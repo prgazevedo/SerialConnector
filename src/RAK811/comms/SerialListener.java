@@ -22,27 +22,33 @@ import com.fazecast.jSerialComm.SerialPort;
 import com.fazecast.jSerialComm.SerialPortEvent;
 import com.fazecast.jSerialComm.SerialPortPacketListener;
 import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public final class SerialListener implements SerialPortPacketListener
 {
 
+    /** The logger we shall use */
+    private final static Logger logger =  LogManager.getLogger(CommsManager.class);
 
+    public void writeLog(org.apache.logging.log4j.Level messageLevel,String message){ logger.log(messageLevel,message); }
 
+    private CommsManager m_CommsManager;
     private SerialPort m_serialPort=null;
-    private MessageRecordQueue m_queue=null;
+
     StringBuilder rawMessage = new StringBuilder();
     private boolean isNameSet=false;
-    private CommsManager m_commsManager;
+
 
 
     public SerialListener(CommsManager commsManager) {
-        m_commsManager = commsManager;
+         m_CommsManager=commsManager;
 
     }
 
-    public void initialize(SerialPort serial, MessageRecordQueue queue){
+    public void initialize(SerialPort serial){
         m_serialPort = serial;
-        m_queue=queue;
+
     }
 
     public final void initThreadName(){
@@ -67,19 +73,19 @@ public final class SerialListener implements SerialPortPacketListener
             byte[] buffer = new byte[m_serialPort.bytesAvailable()];
             m_serialPort.readBytes(buffer, buffer.length);
             //byte[] newData = event.getReceivedData();
-            //log.info("[Raspberry]: serialEvent called");
+            writeLog(Level.INFO,"[SerialListener]: serialEvent called");
             if(buffer.length>0) readRawData(buffer);
 
 
         }
         catch (Exception rEx)
         {
-            m_commsManager.writeLog(Level.ERROR,"serialEvent - exception:"+rEx.toString());
+            writeLog(Level.ERROR,"[SerialListener]:serialEvent - exception:"+rEx.toString());
         }
     }
 
     private void readRawData(byte[] buffer){
-        //log.info("[Raspberry]: data received. Size: "+buffer.length+ "\n");
+        writeLog(Level.INFO,"[SerialConnector]: data received. Size: "+buffer.length+ "\n");
         String prefix="[SerialListener]: readRawData from serial: ";
         String output="";
         try {
@@ -89,39 +95,34 @@ public final class SerialListener implements SerialPortPacketListener
                 if (CommsProperties.isMessageSplitter(b) && rawMessage.length() > 0)
                 {
                     String toProcess = rawMessage.toString();
-                    m_commsManager.writeLog(Level.TRACE,prefix + "Received a rawMessage:[{}]"+ toProcess);
+                    writeLog(Level.INFO,"[SerialConnector]:Received a rawMessage:[{}]"+ toProcess);
 
-                    //Send Message
-                    Message message = new Message(new String(buffer), Message.MessageType.None);
+                    m_CommsManager.receiveMessage(new String(buffer));
 
-                    if (message != null)
-                    {
-                        m_queue.writeinQueue(message,false);
-                    }
                     rawMessage.setLength(0);
                 }
                 else if (!CommsProperties.isMessageSplitter(b))
                 {
-                   // m_commsManager.writeLog(Level.TRACE,"Received a char:"+ ((char) b));
+
                     rawMessage.append((char) b);
                 }
                 else if (CommsProperties.isMessageOversize(rawMessage.length() ) )
                 {
-                    m_commsManager.writeLog(Level.WARN, "Serial receive buffer size reached to MAX level[{} chars], " +
+                    writeLog(Level.INFO,"[SerialConnector]:Serial receive buffer size reached to MAX level[{} chars], " +
                                     "Now clearing the buffer. Existing data:[{}]"+
                             CommsProperties.getSerialDataMaxSize()+
                             rawMessage.toString());
                     rawMessage.setLength(0);
                 }
                 else {
-                    m_commsManager.writeLog(Level.TRACE,"Received MESSAGE_SPLITTER and current rawMessage length is ZERO! Nothing to do");
+                    writeLog(Level.INFO,"[SerialConnector]:Received MESSAGE_SPLITTER and current rawMessage length is ZERO! Nothing to do");
                 }
             }
-           if(!m_queue.isEmpty()) m_queue.logContents();
+
         }
         catch(Exception e){
             e.printStackTrace();
-            m_commsManager.writeLog(Level.ERROR,"Exception: "+e);
+            writeLog(Level.ERROR,"[SerialConnector]:Exception: "+e);
             rawMessage.setLength(0);
 
         }

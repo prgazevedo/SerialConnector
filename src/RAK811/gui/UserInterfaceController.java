@@ -82,7 +82,6 @@ public class UserInterfaceController implements javafx.fxml.Initializable, javaf
     private ObservableList<String> displayedLogMsgs= FXCollections.observableArrayList();
     private ListViewMessages logMsgs;
 
-    private ObservableList<String> LogMsgTEST= FXCollections.observableArrayList();
 
     private SimpleDateFormat timeFormat;
 

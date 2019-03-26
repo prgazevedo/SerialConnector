@@ -13,6 +13,7 @@ import javafx.stage.Stage;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.config.Configurator;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -26,6 +27,9 @@ public class MainApplication extends Application implements DisplayMessage, Proc
 
     public void writeLog(org.apache.logging.log4j.Level messageLevel,String message){ logger.log(messageLevel,"[Log]:"+message); }
 
+    public void logInitialize(){
+        Configurator.setAllLevels(LogManager.getRootLogger().getName(), PropertiesManager.LOG_LEVEL);
+    }
     public PropertiesManager getM_PropertiesManager() {
         return m_PropertiesManager;
     }
@@ -38,7 +42,7 @@ public class MainApplication extends Application implements DisplayMessage, Proc
 
     @Override
     public void start(Stage primaryStage) {
-
+        logInitialize();
         m_PropertiesManager = new PropertiesManager();
         m_CommsManager = new CommsManager(this);
         m_SyntaxManager = new SyntaxManager( this);
@@ -211,6 +215,7 @@ public class MainApplication extends Application implements DisplayMessage, Proc
         if(params!=null) {
            // m_SyntaxManager.buildRAKParameterValues(params).toArray()
         }
+
         message = m_SyntaxManager.callRAKCmd(cmd, params );
         writeLog(Level.INFO, "sendMsg: Message to the Serial Port"+message);
         m_CommsManager.sendMessage(message);

@@ -1,12 +1,10 @@
 package RAK811.comms;
 
 import RAK811.gui.MainApplication;
-import RAK811.properties.PropertiesManager;
 import com.fazecast.jSerialComm.SerialPort;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.core.config.Configurator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,17 +21,7 @@ public class CommsManager  {
     private List<SerialPort> m_serialPortlist=null;
     /** Map of serial ports and names */
     private HashMap<String, SerialPort> m_portMap=null;
-    /** port names to use in different machines */
-    private static final String PORT_NAMES[] = {
-            // "/dev/tty.usbserial-A9007UX1", // Mac OS X
-            "/dev/tty.usbmodem1411", //Mac OS X
-            "/dev/tty.usbmodem1431",
-            "cu.usbmodem1441", //call-out
-            "tty.usbmodem1441", //call-in
-            "/dev/ttyACM0", // Raspberry Pi
-            "/dev/ttyUSB0", // Linux
-            "COM3", // Windows
-    };
+
 
     public SerialPort getM_comPort() { return m_comPort; }
 
@@ -57,8 +45,11 @@ public class CommsManager  {
     public void writeLog(org.apache.logging.log4j.Level messageLevel,String message){ logger.log(messageLevel,message); }
 
 
-    public void logInitialize(){
-        Configurator.setAllLevels(LogManager.getRootLogger().getName(), PropertiesManager.LOG_LEVEL);
+
+    public void initialize() {
+
+        initializePortList();
+
     }
 
     public CommsManager(MainApplication mainApplication) {
@@ -98,13 +89,36 @@ public class CommsManager  {
     }
 
 
-    public void initialize() {
-        logInitialize();
-        initializePortList();
 
+
+    // NEW BEGIN
+    private void initializePort() {
+        //set params
+        setPortDefaultParams(m_comPort);
+        //add event listeners
+        addEventListeners(m_comPort);
     }
 
+    public void sendMessage(String cmd)
+    {
+        Message payload = new Message(cmd, Message.MessageType.CMD);
+        m_serialWriter.writeStream(payload.getM_message());
+        m_queue.writeinQueue(payload, true);
+    }
 
+    public void receiveMessage(String cmd)
+    {
+
+        Message payload = new Message(cmd, Message.MessageType.None);
+        if (payload != null)
+        {
+            m_queue.writeinQueue(payload,false);
+        }
+        if(!m_queue.isEmpty()) m_queue.logContents();
+        m_mainApplication.displayFrame(payload.getM_message());
+    }
+
+    //NEW END
 
 
     public boolean openPort( String portID)
@@ -139,12 +153,6 @@ public class CommsManager  {
 
     }
 
-    private void initializePort() {
-        //set params
-        setPortDefaultParams(m_comPort);
-        //add event listeners
-        addEventListeners(m_comPort);
-    }
 
     public boolean isComPortOpen(){
         if(m_comPort!=null) {
@@ -184,24 +192,12 @@ public class CommsManager  {
     {
         writeLog(Level.INFO," addEventListeners called");
         SerialListener listener = new SerialListener(this);
-        listener.initialize(comPort,m_queue);
+        listener.initialize(comPort);
         comPort.addDataListener(listener);
+        writeLog(Level.INFO," addEventListeners has new listener");
 
     }
 
-
-    public void sendMessage(String cmd)
-    {
-        Message payload = new Message(cmd, Message.MessageType.CMD);
-        m_serialWriter.writeStream(payload.getM_message());
-        m_queue.writeinQueue(payload, true);
-    }
-
-    public void receiveMessage(String cmd)
-    {
-        Message payload = new Message(cmd, Message.MessageType.None);
-        m_queue.writeinQueue(payload, true);
-    }
 
 
 
