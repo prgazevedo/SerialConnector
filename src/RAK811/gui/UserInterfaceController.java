@@ -67,7 +67,7 @@ public class UserInterfaceController implements javafx.fxml.Initializable, javaf
         else {
             m_processAction.sendMsg(methodName, parseString(parameters));
         }
-        userCommandsString.clear();
+        //userCommandsString.clear();
     }
 
     private String[] parseString(String stext){
@@ -114,7 +114,7 @@ public class UserInterfaceController implements javafx.fxml.Initializable, javaf
         // To display latest received frames.
         recFramesLV.setItems(displayedFrames);
         recFrames = new ListViewMessages(displayedFrames, 1000);
-
+        recFramesLV.setMaxHeight(Double.MAX_VALUE);
         // To display latest log messages.
         logMsgsLV.setItems(displayedLogMsgs);
         logMsgs = new ListViewMessages(displayedLogMsgs, 1000);

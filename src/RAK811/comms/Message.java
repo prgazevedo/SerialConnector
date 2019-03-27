@@ -25,6 +25,10 @@ public class Message {
     /** Acceptable Message splitter chars for serial message */
     public static final byte[] MESSAGE_END = {'\r','\n'};
 
+    public String getM_messagePayload() {
+        return m_messagePayload;
+    }
+
     private  String m_messagePayload;
     private String m_message;
     private MessageType m_messageType;

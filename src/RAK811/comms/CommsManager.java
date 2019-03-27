@@ -109,13 +109,15 @@ public class CommsManager  {
     public void receiveMessage(String cmd)
     {
 
-        Message payload = new Message(cmd, Message.MessageType.None);
-        if (payload != null)
+        Message message = new Message(cmd, Message.MessageType.None);
+        if (message != null)
         {
-            m_queue.writeinQueue(payload,false);
+            m_queue.writeinQueue(message,false);
         }
         if(!m_queue.isEmpty()) m_queue.logContents();
-        m_mainApplication.displayFrame(payload.getM_message());
+        //m_mainApplication.displayFrame(message.getM_messagePayload());
+        m_mainApplication.displayFrameLater(message.getM_messagePayload());
+
     }
 
     //NEW END

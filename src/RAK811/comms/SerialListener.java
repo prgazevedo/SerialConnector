@@ -94,10 +94,10 @@ public final class SerialListener implements SerialPortPacketListener
             {
                 if (CommsProperties.isMessageSplitter(b) && rawMessage.length() > 0)
                 {
-                    String toProcess = rawMessage.toString();
+                    String toProcess = rawMessage.toString();//.replaceAll(("(\\r\\n|\\r|\\n)"), "");
                     writeLog(Level.INFO,"[SerialConnector]:Received a rawMessage:[{}]"+ toProcess);
-
-                    m_CommsManager.receiveMessage(new String(buffer));
+                    m_CommsManager.receiveMessage(toProcess);
+                    //m_CommsManager.receiveMessage(new String(buffer));
 
                     rawMessage.setLength(0);
                 }

@@ -55,7 +55,8 @@ public class MainApplication extends Application implements DisplayMessage, Proc
             fxmlLoader = new FXMLLoader();
             Parent root = fxmlLoader.load(getClass().getResource(m_PropertiesManager.FXML_NAME).openStream());
             primaryStage.setTitle("Serial Controller");
-            Scene scene = new Scene(root,m_PropertiesManager.WIDTH,m_PropertiesManager.HEIGHT);
+            Scene scene = new Scene(root);
+            //Scene scene = new Scene(root,m_PropertiesManager.WIDTH,m_PropertiesManager.HEIGHT);
             scene.getStylesheets().add(getClass().getResource(m_PropertiesManager.CSS_NAME).toExternalForm());
             primaryStage.setScene(scene);
             primaryStage.show();

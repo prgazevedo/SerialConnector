@@ -4,4 +4,15 @@
 }
 .text-field:focused {
     -fx-prompt-text-fill: derive(-fx-control-inner-background,-30%);
+}
+.list-view .list-cell:even {
+    -fx-control-inner-background: white ;
+ -fx-control-inner-background-alt: derive(-fx-control-inner-background, 10%);
+-fx-text-fill: grey;
+}
+.list-view .list-cell:odd {
+    -fx-control-inner-background: white ;
+    -fx-control-inner-background-alt: derive(-fx-control-inner-background, -10%);
+-fx-text-fill: grey;
 }`
+

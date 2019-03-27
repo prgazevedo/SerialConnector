@@ -29,8 +29,12 @@ public class ListViewMessages {
             // Remove oldest element.
             messageList.remove(s - 1);
         }
-        // Add new element.
-        messageList.add(0, message);
+        try {
+            // Add new element.
+            messageList.add(0, message);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
     }
 }
