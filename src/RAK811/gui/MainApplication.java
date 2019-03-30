@@ -3,6 +3,7 @@ package RAK811.gui;
 
 import RAK811.comms.CommsManager;
 import RAK811.comms.MessageRecord;
+import RAK811.comms.MessageRecordQueue;
 import RAK811.comms.SyntaxManager;
 import RAK811.utils.FileManager;
 import RAK811.utils.PropertiesManager;
@@ -28,14 +29,7 @@ import java.util.Set;
 
 public class MainApplication extends Application implements DisplayMessage, ProcessAction {
 
-    /** The logger we shall use */
-    private final static Logger logger =  LogManager.getLogger(CommsManager.class);
 
-    public void writeLog(org.apache.logging.log4j.Level messageLevel,String message){ logger.log(messageLevel,"[Log]:"+message); }
-
-    public void logInitialize(){
-        Configurator.setAllLevels(LogManager.getRootLogger().getName(), PropertiesManager.LOG_LEVEL);
-    }
     public PropertiesManager getM_PropertiesManager() {
         return m_PropertiesManager;
     }
@@ -47,7 +41,14 @@ public class MainApplication extends Application implements DisplayMessage, Proc
     private FileManager m_FileManager;
     private Stage m_primaryStage;
 
+    /** The logger we shall use */
+    private final static Logger logger =  LogManager.getLogger(CommsManager.class);
 
+    public void writeLog(org.apache.logging.log4j.Level messageLevel,String message){ logger.log(messageLevel,"[Log]:"+message); }
+
+    public void logInitialize(){
+        Configurator.setAllLevels(LogManager.getRootLogger().getName(), PropertiesManager.LOG_LEVEL);
+    }
     @Override
     public void start(Stage primaryStage) {
         logInitialize();
@@ -246,7 +247,7 @@ public class MainApplication extends Application implements DisplayMessage, Proc
         File file = fileChooser.showSaveDialog(m_primaryStage);
 
         if (file != null) {
-            String toSave = m_FileManager.exportToXML(m_CommsManager.getSentMessages(), MessageRecord.class);
+            String toSave = m_FileManager.exportToXML(m_CommsManager.getSentMessages());
             m_FileManager.saveToFile(toSave, file);
         }
     }
@@ -260,16 +261,17 @@ public class MainApplication extends Application implements DisplayMessage, Proc
         fileChooser.getExtensionFilters().add(extFilter);
         //Show save file dialog
         File file = fileChooser.showOpenDialog(m_primaryStage);
-        ArrayList<MessageRecord> load = new ArrayList<>();
+        MessageRecordQueue.MessageRecordList load = new MessageRecordQueue.MessageRecordList();
         if (file != null) {
             try {
-                load = (ArrayList<MessageRecord>) m_FileManager.importFromXML(new FileReader(file));
+                load =  m_FileManager.importFromXML(new FileReader(file));
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
         }
         writeLog(Level.INFO, load.toString());
-        return load;
+
+        return load.getList();
 
     }
 

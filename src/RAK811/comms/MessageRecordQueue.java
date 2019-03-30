@@ -32,6 +32,27 @@ import java.util.concurrent.BlockingQueue;
  */
 
 public class MessageRecordQueue {
+
+    public static class MessageRecordList{
+
+        public ArrayList<MessageRecord> getList() {
+            return list;
+        }
+
+        private ArrayList<MessageRecord> list;
+
+        public MessageRecordList(){
+            list = new ArrayList<MessageRecord>();
+        }
+
+        public void add(MessageRecord p){
+            list.add(p);
+        }
+
+
+    }
+
+
     private String nameQueue;
     private BlockingQueue<MessageRecord> m_queue;
     private final static Logger logger =  LogManager.getLogger(MessageRecordQueue.class);
@@ -55,8 +76,8 @@ public class MessageRecordQueue {
 
     }
 
-    public ArrayList<MessageRecord> getAllSentMessageRecords(){
-        ArrayList<MessageRecord> listToSave = new ArrayList<>();
+    public MessageRecordList getAllSentMessageRecords(){
+        MessageRecordList listToSave = new MessageRecordList();
         MessageRecord messageRecord;
         do{
              messageRecord = getLastMessageRecord();

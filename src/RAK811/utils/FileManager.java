@@ -2,6 +2,7 @@ package RAK811.utils;
 
 import RAK811.comms.CommsManager;
 import RAK811.comms.MessageRecord;
+import RAK811.comms.MessageRecordQueue;
 import com.thoughtworks.xstream.XStream;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -28,20 +29,21 @@ public class FileManager {
         Configurator.setAllLevels(LogManager.getRootLogger().getName(), PropertiesManager.LOG_LEVEL);
     }
 
-    public Object importFromXML(FileReader fileReader){
+    public MessageRecordQueue.MessageRecordList importFromXML(FileReader fileReader){
         XStream xstream=new XStream();
-        ArrayList<Object> arrayToLoad = new ArrayList<>();
-        Object dataToLoad = new Object();
-        xstream.addImplicitCollection(arrayToLoad.getClass(), "arraytoLoad", dataToLoad.getClass());
-        arrayToLoad = (ArrayList<Object>)xstream.fromXML(fileReader);
+        MessageRecordQueue.MessageRecordList arrayToLoad = new MessageRecordQueue.MessageRecordList();
+        xstream.addImplicitCollection(arrayToLoad.getClass(), "arraytoLoad", MessageRecord.class);
+        arrayToLoad = (MessageRecordQueue.MessageRecordList) xstream.fromXML(fileReader);
         return arrayToLoad;
     }
 
-    public String exportToXML(ArrayList<MessageRecord> arrayToSave, Class<MessageRecord> dataToSave){
+    public String exportToXML(MessageRecordQueue.MessageRecordList list){
 
         XStream xstream=new XStream();
-        xstream.addImplicitCollection(arrayToSave.getClass(), "arraytoSave", dataToSave);
-        return xstream.toXML(arrayToSave);
+        xstream.alias("MessageRecord", MessageRecord.class);
+        xstream.alias("MessageRecordList", MessageRecordQueue.MessageRecordList.class);
+        xstream.addImplicitCollection(MessageRecordQueue.MessageRecordList.class, "list");
+        return xstream.toXML(list);
 
 
     }
