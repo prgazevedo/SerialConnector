@@ -2,19 +2,25 @@ package RAK811.gui;
 
 
 import RAK811.comms.CommsManager;
+import RAK811.comms.MessageRecord;
 import RAK811.comms.SyntaxManager;
-import RAK811.properties.PropertiesManager;
+import RAK811.utils.FileManager;
+import RAK811.utils.PropertiesManager;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.config.Configurator;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Set;
@@ -38,6 +44,8 @@ public class MainApplication extends Application implements DisplayMessage, Proc
     private UserInterfaceController m_controller;
     private CommsManager m_CommsManager;
     private SyntaxManager m_SyntaxManager;
+    private FileManager m_FileManager;
+    private Stage m_primaryStage;
 
 
     @Override
@@ -48,7 +56,8 @@ public class MainApplication extends Application implements DisplayMessage, Proc
         m_SyntaxManager = new SyntaxManager( this);
         m_SyntaxManager.initialize();
         m_CommsManager.initialize();
-
+        m_primaryStage=primaryStage;
+        m_FileManager= new FileManager();
         FXMLLoader fxmlLoader = null;
 
         try {
@@ -225,7 +234,44 @@ public class MainApplication extends Application implements DisplayMessage, Proc
 
     }
 
+    public void saveToFile(){
 
+        FileChooser fileChooser = new FileChooser();
+
+        //Set extension filter for text files
+        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("TXT files (*.txt)", "*.txt");
+        fileChooser.getExtensionFilters().add(extFilter);
+
+        //Show save file dialog
+        File file = fileChooser.showSaveDialog(m_primaryStage);
+
+        if (file != null) {
+            String toSave = m_FileManager.exportToXML(m_CommsManager.getSentMessages(), MessageRecord.class);
+            m_FileManager.saveToFile(toSave, file);
+        }
+    }
+
+    @Override
+    public ArrayList<MessageRecord> loadFromFile() {
+        FileChooser fileChooser = new FileChooser();
+
+        //Set extension filter for text files
+        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("TXT files (*.txt)", "*.txt");
+        fileChooser.getExtensionFilters().add(extFilter);
+        //Show save file dialog
+        File file = fileChooser.showOpenDialog(m_primaryStage);
+        ArrayList<MessageRecord> load = new ArrayList<>();
+        if (file != null) {
+            try {
+                load = (ArrayList<MessageRecord>) m_FileManager.importFromXML(new FileReader(file));
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+        writeLog(Level.INFO, load.toString());
+        return load;
+
+    }
 
     //Do not use main in javafx use start
     public static void main(String[] args) {

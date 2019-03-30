@@ -1,4 +1,4 @@
-package RAK811.properties;
+package RAK811.utils;
 
 import RAK811.comms.CommsManager;
 import org.apache.logging.log4j.Level;

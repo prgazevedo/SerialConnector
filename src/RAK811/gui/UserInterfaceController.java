@@ -1,7 +1,7 @@
 package RAK811.gui;
 
 import RAK811.comms.CommsManager;
-import RAK811.properties.PropertiesManager;
+import RAK811.utils.PropertiesManager;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -10,7 +10,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListView;
-import javafx.scene.control.TextField;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -33,9 +32,11 @@ public class UserInterfaceController implements javafx.fxml.Initializable, javaf
     @FXML private ComboBox<String> commandCB;
     @FXML private Button exitB;
     @FXML private Button sendBtn;
-    @FXML private TextField userCommandsString;
+    @FXML private ComboBox<String> userCommandsCB;
     @FXML private ListView<String> recFramesLV;
     @FXML private ListView<String> logMsgsLV;
+    @FXML private Button saveB;
+    @FXML private Button loadB;
 
     private ObservableList<String> serialPortList = FXCollections.observableArrayList();
     private void setOnActionserialPortCB(ActionEvent event){
@@ -44,22 +45,46 @@ public class UserInterfaceController implements javafx.fxml.Initializable, javaf
         writeLog(Level.INFO, "ComboBoxAction selected: "+serialName);
     }
 
+
+
+
     private ObservableList<String> cmdList = FXCollections.observableArrayList();
     private void setOnActioncommandCB(ActionEvent event){
         String methodName = commandCB.getSelectionModel().getSelectedItem();
         String cmdName = m_processAction.getCmd(methodName);
         String cmdParameters = m_processAction.getCmdParameters(methodName);
-        userCommandsString.setText(cmdParameters);
         writeLog(Level.INFO, "ComboBoxAction selected: "+cmdName+ " with parameters: "+cmdParameters);
     }
+
+    private ObservableList<String> cmdInputList = FXCollections.observableArrayList();
+    private void setOnActionUsercommandCB(ActionEvent event){
+        String selectedCommand = userCommandsCB.getSelectionModel().getSelectedItem();
+        writeLog(Level.INFO, "ComboBoxAction selected: "+selectedCommand);
+    }
+
     private void setOnActionexitBtn(ActionEvent event){
         writeLog(Level.INFO, "exit Button pressed");
         Platform.exit();
     }
+
+    private void setOnActionsaveB(ActionEvent actionEvent) {
+        writeLog(Level.INFO, "save Button pressed");
+
+        m_processAction.saveToFile();
+    }
+
+    private void setOnActionloadB(ActionEvent actionEvent) {
+        writeLog(Level.INFO, "load Button pressed");
+
+        m_processAction.loadFromFile();
+    }
+
     private void setOnActionsendCommandBtn(ActionEvent event){
         writeLog(Level.INFO, "SendCmd Button pressed");
         String methodName = commandCB.getSelectionModel().getSelectedItem();
-        String parameters = userCommandsString.getText();
+        String userCommand = userCommandsCB.getEditor().getText();
+        cmdInputList.add(userCommand);
+        String parameters = userCommand;
         if(parameters.equals("")) {
             m_processAction.sendMsg(methodName, null);
 
@@ -104,10 +129,16 @@ public class UserInterfaceController implements javafx.fxml.Initializable, javaf
         cmdList.add("none");
         commandCB.setItems(cmdList);
         commandCB.setOnAction(this::setOnActioncommandCB);
+        userCommandsCB.setItems(cmdInputList);
+        userCommandsCB.setOnAction(this::setOnActionUsercommandCB);
         // action for SendCommand button
         sendBtn.setOnAction(this::setOnActionsendCommandBtn);
         // action for exit button
         exitB.setOnAction(this::setOnActionexitBtn);
+        //action for save button
+        saveB.setOnAction(this::setOnActionsaveB);
+        //action for load button
+        loadB.setOnAction(this::setOnActionloadB);
         timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
 
         displayedFrames.add("Displayed Frames");
@@ -123,6 +154,7 @@ public class UserInterfaceController implements javafx.fxml.Initializable, javaf
 
 
     }
+
 
 
     public void initializePorts(){

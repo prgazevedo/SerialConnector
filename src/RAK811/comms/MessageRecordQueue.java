@@ -20,6 +20,7 @@ package RAK811.comms;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.ArrayList;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
@@ -45,24 +46,6 @@ public class MessageRecordQueue {
     }
 
 
-    public synchronized void add(MessageRecord message) {
-        m_queue.add(message);
-
-        logger.debug("Added[Queue:{}, QueueSize:{}, Message:{}]", nameQueue, m_queue.size(), message);
-    }
-
-
-    public synchronized MessageRecord take() {
-        if (!m_queue.isEmpty()) {
-            MessageRecord message = m_queue.remove();
-
-            logger.debug("Removed[Queue:{}, QueueSize:{}, Message:{}]", nameQueue, m_queue.size(), message);
-            return message;
-        } else {
-            logger.warn("There is no message in the queue, returning null");
-            return null;
-        }
-    }
 
     public void logContents(){
         if(m_queue!=null) {
@@ -72,17 +55,24 @@ public class MessageRecordQueue {
 
     }
 
-    public void auditAllContents(){
-        if(m_queue!=null) {
-            logger.debug("auditAllContents, take all messages from message queue, queue size is {}", m_queue.size());
-            while(!m_queue.isEmpty()){
-               try{
-                   logger.info("Queue data is {}",m_queue.take().toString());
-               } catch (Exception e){
-                   logger.error("auditAllContents - Exception Error taking from Message queue:"+e);
-               }
-            }
-        }
+    public ArrayList<MessageRecord> getAllSentMessageRecords(){
+        ArrayList<MessageRecord> listToSave = new ArrayList<>();
+        MessageRecord messageRecord;
+        do{
+             messageRecord = getLastMessageRecord();
+             listToSave.add(messageRecord);
+
+        }while(messageRecord!=null);
+        return listToSave;
+    }
+
+    public MessageRecord getLastSendMessageRecord(){
+        MessageRecord messageRecord;
+        do{
+            messageRecord = getLastMessageRecord();
+        } while(!messageRecord.getTxMessage());
+        return messageRecord;
+
     }
 
     private MessageRecord getLastMessageRecord()
@@ -109,29 +99,13 @@ public class MessageRecordQueue {
         return messageRecord;
     }
 
-    public MessageRecord auditLastMessage(){
-        MessageRecord messageRecord=getLastMessageRecord();
-        if(messageRecord!=null)
-        {
-            logger.trace("MessageRecord in Queue is {}",messageRecord.toString());
-
-        }
-        if(messageRecord==null)
-        {
-            logger.error("auditLastMessage MessageRecord in Queue is null.");
-
-        }
-        return messageRecord;
-    }
 
     public synchronized boolean isEmpty() {
         return m_queue.isEmpty();
     }
 
 
-    public synchronized void clear() {
-        m_queue.clear();
-    }
+
 
 
     public  synchronized void writeinQueue(Message messagePayload, boolean isTX){
@@ -147,5 +121,61 @@ public class MessageRecordQueue {
         }
     }
 
+    /**
+     * Unused
+     */
+
+    public void auditAllContents(){
+        if(m_queue!=null) {
+            logger.debug("auditAllContents, take all messages from message queue, queue size is {}", m_queue.size());
+            while(!m_queue.isEmpty()){
+                try{
+                    logger.info("Queue data is {}",m_queue.take().toString());
+                } catch (Exception e){
+                    logger.error("auditAllContents - Exception Error taking from Message queue:"+e);
+                }
+            }
+        }
+    }
+
+
+    public MessageRecord auditLastMessage(){
+        MessageRecord messageRecord=getLastMessageRecord();
+        if(messageRecord!=null)
+        {
+            logger.trace("MessageRecord in Queue is {}",messageRecord.toString());
+
+        }
+        if(messageRecord==null)
+        {
+            logger.error("auditLastMessage MessageRecord in Queue is null.");
+
+        }
+        return messageRecord;
+    }
+
+    public synchronized void clear() {
+        m_queue.clear();
+    }
+
+
+    public synchronized void add(MessageRecord message) {
+        m_queue.add(message);
+
+        logger.debug("Added[Queue:{}, QueueSize:{}, Message:{}]", nameQueue, m_queue.size(), message);
+    }
+
+
+    public synchronized MessageRecord take() {
+        if (!m_queue.isEmpty()) {
+            MessageRecord message = m_queue.remove();
+
+            logger.debug("Removed[Queue:{}, QueueSize:{}, Message:{}]", nameQueue, m_queue.size(), message);
+            return message;
+        } else {
+            logger.warn("There is no message in the queue, returning null");
+            return null;
+        }
+    }
 
 }

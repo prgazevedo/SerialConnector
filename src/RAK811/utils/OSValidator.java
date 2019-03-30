@@ -1,4 +1,4 @@
-package RAK811.properties;
+package RAK811.utils;
 
 public class OSValidator {
 

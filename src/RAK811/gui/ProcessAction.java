@@ -1,5 +1,7 @@
 package RAK811.gui;
 
+import RAK811.comms.MessageRecord;
+
 import java.util.ArrayList;
 import java.util.Set;
 
@@ -14,7 +16,12 @@ public interface ProcessAction {
 
         public void setSerialPortValue(String serialPortName);
 
-        public void sendMsg(String cmd,  String... params);
+        public void saveToFile();
+
+        public ArrayList<MessageRecord> loadFromFile();
+
+
+    public void sendMsg(String cmd,  String... params);
 
         public String getCmd(String cmdName);
 

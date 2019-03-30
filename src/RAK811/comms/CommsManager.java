@@ -29,7 +29,8 @@ public class CommsManager  {
         this.m_comPort = m_comPort;
     }
 
-    public  MessageRecordQueue getM_queue() { return m_queue; }
+    public  ArrayList<MessageRecord> getSentMessages() { return m_queue.getAllSentMessageRecords(); }
+
     private MainApplication m_mainApplication;
 
     public SerialWriter getM_serialWriter() {
