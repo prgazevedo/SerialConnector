@@ -221,17 +221,29 @@ public class MainApplication extends Application implements DisplayMessage, Proc
      * For ProcessAction interface.
      */
     @Override
-    public void sendMsg(String cmd, String... params) {
+    public void sendMsg(String cmd, int nExpectedParams, String... params)
+    {
         String message;
-        if(params!=null) {
-           // m_SyntaxManager.buildRAKParameterValues(params).toArray()
+        if(nExpectedParams==0){
+            message = m_SyntaxManager.callRAKCmd(cmd,null);
+            writeLog(Level.INFO, "sendMsg: Message to the Serial Port" + message);
+            m_CommsManager.sendMessage(message);
+            displayLog(message + " message sent");
+            writeLog(Level.INFO, "sendMsg: displayLog called" + message);
         }
-
-        message = m_SyntaxManager.callRAKCmd(cmd, params );
-        writeLog(Level.INFO, "sendMsg: Message to the Serial Port"+message);
-        m_CommsManager.sendMessage(message);
-        displayLog(message+" message sent");
-        writeLog(Level.INFO, "sendMsg: displayLog called"+message);
+        else if(params==null){
+            writeLog(Level.ERROR, "sendMsg: Message to the Serial Port could not be sent. Number of params does not match. Expected: "+nExpectedParams+" received no parameters");
+        }
+        else if(params.length!=nExpectedParams){
+            writeLog(Level.ERROR, "sendMsg: Message to the Serial Port could not be sent. Number of params does not match. Expected: "+nExpectedParams+" received: "+params.length);
+        }
+        else {
+            message = m_SyntaxManager.callRAKCmd(cmd, params);
+            writeLog(Level.INFO, "sendMsg: Message to the Serial Port" + message);
+            m_CommsManager.sendMessage(message);
+            displayLog(message + " message sent");
+            writeLog(Level.INFO, "sendMsg: displayLog called" + message);
+        }
 
     }
 

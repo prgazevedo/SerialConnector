@@ -20,7 +20,7 @@ public interface ProcessAction {
 
         public ArrayList<MessageRecord> loadFromFile();
 
-        public void sendMsg(String cmd,  String... params);
+        public void sendMsg(String cmd, int nParams, String... params);
 
         public void sendMsgS(ArrayList<MessageRecord> cmd);
 

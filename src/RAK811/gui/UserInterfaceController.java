@@ -30,10 +30,13 @@ public class UserInterfaceController implements javafx.fxml.Initializable, javaf
 
 
     @FXML private ComboBox<String> serialPortCB;
+    //selection of user command
     @FXML private ComboBox<String> commandCB;
     @FXML private Button exitB;
     @FXML private Button sendBtn;
+    //user command plus parameters
     @FXML private ComboBox<String> userCommandsCB;
+    private int m_expectedParams;
     @FXML private ListView<String> recFramesLV;
     @FXML private ListView<String> logMsgsLV;
     @FXML private Button saveB;
@@ -54,7 +57,9 @@ public class UserInterfaceController implements javafx.fxml.Initializable, javaf
         String methodName = commandCB.getSelectionModel().getSelectedItem();
         String cmdName = m_processAction.getCmd(methodName);
         String cmdParameters = m_processAction.getCmdParameters(methodName);
-        writeLog(Level.INFO, "ComboBoxAction selected: "+cmdName+ " with parameters: "+cmdParameters);
+        if (cmdParameters.equals("")) m_expectedParams=0;
+        else m_expectedParams = parseString(cmdParameters).length;
+        writeLog(Level.INFO, "ComboBoxAction selected: "+cmdName+ " with parameters: "+cmdParameters+ "number of params is: "+ m_expectedParams);
     }
 
     private ObservableList<String> cmdInputList = FXCollections.observableArrayList();
@@ -88,18 +93,18 @@ public class UserInterfaceController implements javafx.fxml.Initializable, javaf
         cmdInputList.add(userCommand);
         String parameters = userCommand;
         if(parameters.equals("")) {
-            m_processAction.sendMsg(methodName, null);
+            m_processAction.sendMsg(methodName, m_expectedParams, null);
 
         }
         else {
-            m_processAction.sendMsg(methodName, parseString(parameters));
+            m_processAction.sendMsg(methodName, m_expectedParams,parseString(parameters));
         }
         //userCommandsString.clear();
     }
 
     private String[] parseString(String stext){
         String delims = "[+\\<\\>\\-*/\\^ ]+"; // so the delimiters are:  + - * / ^ space
-        String[] tokens = stext.split(delims);
+        String[] tokens = stext.trim().substring(1).split(delims);
         return tokens;
     }
 
