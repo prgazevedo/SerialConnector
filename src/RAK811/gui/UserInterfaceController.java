@@ -16,6 +16,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.ResourceBundle;
 
@@ -76,7 +77,8 @@ public class UserInterfaceController implements javafx.fxml.Initializable, javaf
     private void setOnActionloadB(ActionEvent actionEvent) {
         writeLog(Level.INFO, "load Button pressed");
 
-        m_processAction.loadFromFile();
+        m_processAction.sendMsgS(m_processAction.loadFromFile());
+
     }
 
     private void setOnActionsendCommandBtn(ActionEvent event){

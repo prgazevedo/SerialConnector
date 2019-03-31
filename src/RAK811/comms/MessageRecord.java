@@ -44,7 +44,7 @@ public class MessageRecord {
 
 
 
-    public Boolean getTxMessage() {
+    public Boolean isTxMessage() {
         return isTxMessage;
     }
 

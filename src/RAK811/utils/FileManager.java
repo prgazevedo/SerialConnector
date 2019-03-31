@@ -31,20 +31,26 @@ public class FileManager {
 
     public MessageRecordQueue.MessageRecordList importFromXML(FileReader fileReader){
         XStream xstream=new XStream();
-        MessageRecordQueue.MessageRecordList arrayToLoad = new MessageRecordQueue.MessageRecordList();
-        xstream.addImplicitCollection(arrayToLoad.getClass(), "arraytoLoad", MessageRecord.class);
-        arrayToLoad = (MessageRecordQueue.MessageRecordList) xstream.fromXML(fileReader);
-        return arrayToLoad;
+        MessageRecordQueue.MessageRecordList list = new MessageRecordQueue.MessageRecordList();
+        XStream.setupDefaultSecurity(xstream);
+        Class<?>[] classes = new Class[] { MessageRecordQueue.MessageRecordList.class, MessageRecord.class };
+        xstream.allowTypes(classes);
+        xstream.alias("MessageRecord", MessageRecord.class);
+        xstream.alias("MessageRecordList", MessageRecordQueue.MessageRecordList.class);
+        xstream.addImplicitCollection(MessageRecordQueue.MessageRecordList.class, "list");
+        list = (MessageRecordQueue.MessageRecordList) xstream.fromXML(fileReader);
+        return list;
     }
 
     public String exportToXML(MessageRecordQueue.MessageRecordList list){
-
         XStream xstream=new XStream();
+        XStream.setupDefaultSecurity(xstream);
+        Class<?>[] classes = new Class[] { MessageRecordQueue.MessageRecordList.class, MessageRecord.class };
+        xstream.allowTypes(classes);
         xstream.alias("MessageRecord", MessageRecord.class);
         xstream.alias("MessageRecordList", MessageRecordQueue.MessageRecordList.class);
         xstream.addImplicitCollection(MessageRecordQueue.MessageRecordList.class, "list");
         return xstream.toXML(list);
-
 
     }
 

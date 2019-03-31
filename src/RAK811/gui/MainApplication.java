@@ -235,6 +235,17 @@ public class MainApplication extends Application implements DisplayMessage, Proc
 
     }
 
+    @Override
+    public void sendMsgS(ArrayList<MessageRecord> cmds) {
+        writeLog(Level.INFO, "sendMsg: Message to the Serial Port"+cmds.toString());
+        for(MessageRecord s:cmds){
+            m_CommsManager.sendRawMessage(s.getPayload().getM_message());
+            displayLog(s+" message sent");
+            writeLog(Level.INFO, "sendMsg: displayLog called"+s);
+        }
+
+    }
+
     public void saveToFile(){
 
         FileChooser fileChooser = new FileChooser();

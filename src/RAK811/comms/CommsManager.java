@@ -107,6 +107,14 @@ public class CommsManager  {
         m_queue.writeinQueue(payload, true);
     }
 
+    public void sendRawMessage(String cmd)
+    {
+        Message payload = new Message(cmd);
+        m_serialWriter.writeStream(cmd);
+        m_queue.writeinQueue(payload, true);
+    }
+
+
     public void receiveMessage(String cmd)
     {
 

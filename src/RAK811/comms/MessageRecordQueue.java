@@ -78,10 +78,11 @@ public class MessageRecordQueue {
 
     public MessageRecordList getAllSentMessageRecords(){
         MessageRecordList listToSave = new MessageRecordList();
-        MessageRecord messageRecord;
+        MessageRecord messageRecord = getLastMessageRecord();
         do{
-             messageRecord = getLastMessageRecord();
-             listToSave.add(messageRecord);
+
+             if(messageRecord.isTxMessage()) listToSave.add(messageRecord);
+            messageRecord = getLastMessageRecord();
 
         }while(messageRecord!=null);
         return listToSave;
@@ -91,7 +92,7 @@ public class MessageRecordQueue {
         MessageRecord messageRecord;
         do{
             messageRecord = getLastMessageRecord();
-        } while(!messageRecord.getTxMessage());
+        } while(!messageRecord.isTxMessage());
         return messageRecord;
 
     }

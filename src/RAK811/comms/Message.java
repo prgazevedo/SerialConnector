@@ -40,6 +40,13 @@ public class Message {
 
     }
 
+    public Message(String message) {
+        this.m_messagePayload = message;
+        this.m_messageType = MessageType.CMD;
+        this.m_message = message;
+
+    }
+
     //The actual message to write in serial
     public String getM_message() {
         return m_message;
