@@ -1,1 +1,1 @@
-# SerialConnector program to connect to a RAK
+# SerialConnector program to connect to a RAK811
